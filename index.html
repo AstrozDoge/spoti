@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Spotisaver</title>
+    <link rel="stylesheet" href="https://cloudflare.com">
+</head>
+<body class="bg-black text-gray-100 flex items-center justify-center min-h-screen font-sans">
+
+    <div class="w-full max-w-md p-8 bg-gray-900 border border-gray-800 rounded-2xl shadow-xl text-center">
+        <h1 class="text-3xl font-black text-green-400 mb-2 tracking-tight">Spotisaver</h1>
+        <p class="text-gray-400 text-sm mb-6">Your private web downloader tool</p>
+        
+        <div class="space-y-4">
+            <input type="text" id="spotifyUrl" placeholder="Paste Spotify link here..." 
+                   class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl focus:outline-none focus:border-green-500 text-sm text-white">
+            
+            <button onclick="downloadTrack()" id="downloadBtn"
+                    class="w-full py-3 bg-green-500 hover:bg-green-600 text-black font-semibold rounded-xl shadow-lg transition-all active:scale-[0.98]">
+                Download Music File
+            </button>
+        </div>
+
+        <div id="status" class="hidden mt-6 text-sm text-green-400 animate-pulse font-medium">
+            ⏳ Connecting to conversion engine...
+        </div>
+    </div>
+
+    <script>
+        async function downloadTrack() {
+            const urlInput = document.getElementById('spotifyUrl').value;
+            const statusDiv = document.getElementById('status');
+            const btn = document.getElementById('downloadBtn');
+            
+            if(!urlInput) {
+                alert('Please enter a valid link!');
+                return;
+            }
+
+            statusDiv.classList.remove('hidden');
+            statusDiv.innerText = "⏳ Scraping track info from link...";
+            btn.disabled = true;
+
+            try {
+                // Extract track ID from the Spotify URL path
+                const trackId = urlInput.split('/track/')[1]?.split('?')[0];
+                
+                if (!trackId) {
+                    statusDiv.innerText = "❌ Invalid Spotify Track URL. Make sure it is a single track link.";
+                    btn.disabled = false;
+                    return;
+                }
+
+                // Call a free, public client-side conversion endpoint
+                const apiUrl = `https://spotifydownloader.com{trackId}`;
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (data.success && data.link) {
+                    statusDiv.innerText = "🚀 Success! Sending file to your browser downloads...";
+                    
+                    // Trigger an automatic file download inside the browser
+                    const tempLink = document.createElement('a');
+                    tempLink.href = data.link;
+                    tempLink.setAttribute('download', `${data.metadata.title}.mp3`);
+                    document.body.appendChild(tempLink);
+                    tempLink.click();
+                    document.body.removeChild(tempLink);
+                } else {
+                    statusDiv.innerText = "❌ Conversion engine rejected the track or busy.";
+                }
+            } catch (error) {
+                statusDiv.innerText = "❌ Network error connecting to public download pool.";
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
