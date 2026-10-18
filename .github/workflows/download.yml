@@ -19,7 +19,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-state: '3.11'
+        python-version: '3.11'
 
     - name: Install Tools & spotDL
       run: |
@@ -29,17 +29,13 @@ jobs:
 
     - name: Download Tracks from Playlist
       run: |
-        mkdir playlist_download
-        cd playlist_download
-        spotdl download "${{ github.event.inputs.spotify_url }}" --output "{title} - {artist}.{output-ext}"
+        mkdir -p music_output
+        # Running the download directly into the dedicated target directory
+        spotdl download "${{ github.event.inputs.spotify_url }}" --output "music_output/{title} - {artist}.{output-ext}"
 
-    - name: Compress Tracks into a ZIP Archive
-      run: |
-        zip -r my_playlist.zip playlist_download/
-
-    - name: Upload ZIP to GitHub Actions Downloads
+    - name: Upload Tracks Directly (No Empty Zip Bugs)
       uses: actions/upload-artifact@v4
       with:
         name: Spotify-Download-Archive
-        path: my_playlist.zip
+        path: music_output/
         retention-days: 1
