@@ -32,12 +32,11 @@
                 return;
             }
 
-            // Copy the URL to clipboard so you can just hit Cmd+V in the next step
+            // Securely saves the URL path to clipboard for instant pasting
             navigator.clipboard.writeText(urlInput);
+            alert('Playlist link copied! Direct terminal form opening. Just click "Run workflow", paste with Cmd+V, and execute!');
             
-            alert('Link copied! We are opening the native GitHub form. Just paste it into the box and click Run.');
-            
-            // Takes you directly to the automated form page layout
+            // Hardcoded direct structural path routing targeting your public workflow action job endpoint
             window.location.href = "https://github.com";
         }
     </script>
