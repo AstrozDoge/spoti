@@ -1,0 +1,45 @@
+name: Spotisaver Personal Downloader
+
+on:
+  workflow_dispatch:
+    inputs:
+      spotify_url:
+        description: 'Paste your Public Spotify Playlist or Track Link'
+        required: true
+        type: string
+
+jobs:
+  download-music:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-state: '3.11'
+
+    - name: Install Tools & spotDL
+      run: |
+        python -m pip install --upgrade pip
+        pip install spotdl
+        spotdl --download-ffmpeg
+
+    - name: Download Tracks from Playlist
+      run: |
+        mkdir playlist_download
+        cd playlist_download
+        spotdl download "${{ github.event.inputs.spotify_url }}" --output "{title} - {artist}.{output-ext}"
+
+    - name: Compress Tracks into a ZIP Archive
+      run: |
+        zip -r my_playlist.zip playlist_download/
+
+    - name: Upload ZIP to GitHub Actions Downloads
+      uses: actions/upload-artifact@v4
+      with:
+        name: Spotify-Download-Archive
+        path: my_playlist.zip
+        retention-days: 1
